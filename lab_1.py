@@ -9,18 +9,20 @@ import matplotlib.pyplot as plt
 def imread_gray(path):
     img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
     if img is None:
-        raise FileNotFoundError(f"No se pudo cargar la imagen: {path}")
+        raise FileNotFoundError(f"No se puede cargar la imagen: {path}")
     if len(img.shape) == 3:
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        R = img[:, :, 2].astype(np.float32)
+        G = img[:, :, 1].astype(np.float32)
+        B = img[:, :, 0].astype(np.float32)
+        gray = 0.2989 * R + 0.5870 * G + 0.1140 * B
     else:
-        gray = img.copy()
-    if gray.dtype != np.uint8:
-        gmin, gmax = gray.min(), gray.max()
-        if gmax > gmin:
-            norm = (gray - gmin) * (255.0 / (gmax - gmin))
-        else:
-            norm = np.zeros_like(gray, dtype=np.float32)
-        gray = np.clip(norm, 0, 255).astype(np.uint8)
+        gray = img.astype(np.float32)
+    gmin, gmax = gray.min(), gray.max()
+    if gmax > gmin:
+        norm = (gray - gmin) * (255.0 / (gmax - gmin))
+    else:
+        norm = np.zeros_like(gray, dtype=np.float32)
+    gray = np.clip(norm, 0, 255).astype(np.uint8)
     return gray
 
 def save_image_with_title(img, title, out_path):
@@ -47,13 +49,13 @@ def save_image_with_title(img, title, out_path):
     cv2.putText(vis, title, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0,0,0), thickness, cv2.LINE_AA)
     cv2.imwrite(str(out_path), vis)
 
-def custom_histogram(img):
+def histogram(img):
     img_u8 = img.astype(np.uint8)
     counts = np.bincount(img_u8.flatten(), minlength=256)
     return counts
 
 def save_histogram_plot(img, title, out_path):
-    counts = custom_histogram(img)
+    counts = histogram(img)
     plt.figure(figsize=(6,4))
     plt.bar(np.arange(256), counts, width=1.0)
     plt.title(title)
@@ -87,7 +89,7 @@ def rotate_image(img, angle_deg):
 
 def clip_u8(x): return np.clip(x, 0, 255).astype(np.uint8)
 
-def custom_downscale(img, k):
+def downscale(img, k):
     h, w = img.shape[:2]
     new_h, new_w = max(1, h // k), max(1, w // k)
     
@@ -105,7 +107,7 @@ def custom_downscale(img, k):
     
     return result
 
-def custom_upscale(img, k):
+def upscale(img, k):
     h, w = img.shape[:2]
     new_h, new_w = h * k, w * k
     
@@ -123,7 +125,7 @@ def custom_upscale(img, k):
     
     return result
 
-def custom_downscale_bilinear(img, k):
+def downscale_bilinear(img, k):
     h, w = img.shape[:2]
     new_h, new_w = max(1, h // k), max(1, w // k)
     
@@ -152,7 +154,7 @@ def custom_downscale_bilinear(img, k):
     
     return clip_u8(result)
 
-def custom_upscale_bilinear(img, k):
+def upscale_bilinear(img, k):
     h, w = img.shape[:2]
     new_h, new_w = h * k, w * k
     
@@ -197,11 +199,11 @@ def main():
     pair_save(gray, "Escala de grises (Base)", "00_grayscale_base", out_dir)
 
     for k in [2,3,4]:
-        down = custom_downscale_bilinear(gray, k)
+        down = downscale_bilinear(gray, k)
         pair_save(down, f"Reduccion K={k} (Bilineal)", f"01_down_k{k}", out_dir)
 
     for k in [10,12,16]:
-        up = custom_upscale_bilinear(gray, k)
+        up = upscale_bilinear(gray, k)
         pair_save(up, f"Aumento K={k} (Bilineal)", f"02_up_k{k}", out_dir)
 
     for ang in [90, 75, 47, 135]:

@@ -218,10 +218,10 @@ counts[i] = sum(input == i) para i en [0, 255]
 
 ```bash
 # Ejecutar con imagen de entrada
-python corrected.py --imagen image.png --salida ./outputs
+python lab_1.py --imagen image.png --salida ./outputs
 
 # Parámetros opcionales
-python corrected.py --imagen image.png --gamma 2.2 --brillo 40 --alpha_exp 2.0
+python lab_1.py --imagen image.png --gamma 2.2 --brillo 40 --alpha_exp 2.0
 ```
 
 ### Archivos de Salida
