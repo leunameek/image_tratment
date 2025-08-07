@@ -1,4 +1,4 @@
-# Image Processing Laboratory 1 - Mathematical Documentation
+# Image Processing Laboratory 1
 
 ## English Version
 
