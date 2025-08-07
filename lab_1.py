@@ -216,7 +216,7 @@ def main():
 
     gamma_img = ((gray/255.0) ** (1.0/args.gamma)) * 255.0
     gamma_img = clip_u8(gamma_img)
-    pair_save(gamma_img, f"Correccion gamma (γ={args.gamma})", "12_gamma", out_dir)
+    pair_save(gamma_img, f"Correccion gamma (Gamma={args.gamma})", "12_gamma", out_dir)
 
     log_img = 255.0 * (np.log1p(gray.astype(np.float64)) / np.log1p(255.0))
     log_img = clip_u8(log_img)
