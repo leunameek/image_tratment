@@ -76,16 +76,56 @@ def pair_save(img, header_title, base_name, out_dir):
     return img_path, hist_path
 
 def rotate_image(img, angle_deg):
-    (h, w) = img.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv2.getRotationMatrix2D(center, angle_deg, 1.0)
-    cos = abs(M[0, 0]); sin = abs(M[0, 1])
-    new_w = int((h * sin) + (w * cos))
-    new_h = int((h * cos) + (w * sin))
-    M[0, 2] += (new_w / 2) - center[0]
-    M[1, 2] += (new_h / 2) - center[1]
-    rotated = cv2.warpAffine(img, M, (new_w, new_h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
-    return rotated
+    h, w = img.shape[:2]
+    
+    angle_rad = np.radians(angle_deg)
+    cos_angle = np.cos(angle_rad)
+    sin_angle = np.sin(angle_rad)
+    
+    cos_abs = abs(cos_angle)
+    sin_abs = abs(sin_angle)
+    new_w = int(h * sin_abs + w * cos_abs)
+    new_h = int(h * cos_abs + w * sin_abs)
+    
+    result = np.zeros((new_h, new_w), dtype=np.float32)
+    
+    center_x = w / 2.0
+    center_y = h / 2.0
+    new_center_x = new_w / 2.0
+    new_center_y = new_h / 2.0
+    
+    for i in range(new_h):
+        for j in range(new_w):
+
+            x = j - new_center_x
+            y = i - new_center_y
+            
+            src_x = x * cos_angle + y * sin_angle
+            src_y = -x * sin_angle + y * cos_angle
+            
+            src_x += center_x
+            src_y += center_y
+            
+            if 0 <= src_x < w - 1 and 0 <= src_y < h - 1:
+                x1, y1 = int(src_x), int(src_y)
+                x2, y2 = x1 + 1, y1 + 1
+                
+                wx = src_x - x1
+                wy = src_y - y1
+                
+                p11 = img[y1, x1].astype(np.float32)
+                p12 = img[y1, x2].astype(np.float32)
+                p21 = img[y2, x1].astype(np.float32)
+                p22 = img[y2, x2].astype(np.float32)
+                
+                result[i, j] = (1 - wx) * (1 - wy) * p11 + \
+                              (1 - wx) * wy * p12 + \
+                              wx * (1 - wy) * p21 + \
+                              wx * wy * p22
+            else:
+                result[i, j] = 0
+    
+    return clip_u8(result)
 
 def clip_u8(x): return np.clip(x, 0, 255).astype(np.uint8)
 
