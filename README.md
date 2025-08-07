@@ -1,4 +1,4 @@
-# Image Processing Laboratory 1
+# Image Processing Laboratory 1 (AI Generated)
 
 ## English Version
 
